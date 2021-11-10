@@ -1,0 +1,43 @@
+library(rio)
+library(tidyverse)
+library(dplyr)
+israel2015 <- import("C:/Users/hbjro/Downloads/israel2015.dta")
+
+
+
+israel2015 %>%
+  mutate(distinction = cut(after_v13a_1, breaks = c(59, 68, 76, 79, 91, 93, 96, 99), 
+                           labels = c("conflict", "economy", "other issues", "dispositional", 
+                                      "drop", "no difference", "drop"))) %>%
+  filter(!is.na(distinction) & !(distinction == "drop")) %>%
+  group_by(distinction) %>%
+  summarise(n=n()) %>%
+  mutate(perception = as.factor(distinction),
+         share = n/sum(n)) %>%
+  select(perception, share) %>%
+  ggplot(aes(x= perception, y = share)) +
+  geom_bar(stat ="identity") +
+  ylab("Share") +
+  xlab("Difference Category") +
+  ggtitle("Main Dividing Line Between Israeli Left and Right Grouped by Political Identification")
+
+
+
+israel2015 %>% 
+  mutate(tendency = recode(v71, "1" = "left", "2" = "left", "3" = "center", "4" = "right",
+                           "5" = "right", "6" = "religious", .default = NA_character_)) %>%
+  mutate(distinction = cut(after_v13a_1, breaks = c(59, 68, 76, 79, 91, 93, 96, 99), 
+                           labels = c("conflict", "economy", "other issues", "dispositional", 
+                                      "drop", "no difference", "drop"))) %>%
+  filter(!is.na(distinction) & !(distinction == "drop")) %>%
+  filter(!is.na(tendency)) %>%
+  group_by(tendency, distinction) %>%
+  summarise(n=n()) %>%
+  mutate(perception = as.factor(distinction),
+         share = n/sum(n)) %>%
+  select(perception, tendency, share) %>%
+  ggplot(aes(x = perception, y = share, fill = tendency)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  ylab("Share") +
+  xlab("Difference Category") +
+  ggtitle("Main Difference Between Israeli Left and Right Grouped by Political Identification")
